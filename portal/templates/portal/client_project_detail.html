@@ -1,0 +1,97 @@
+{% extends "portal/layout_client.html" %}
+{% load humanize %}
+{% block title %}{{ project.name }}{% endblock %}
+{% block panel %}
+<div class="panel-head">
+  <div>
+    <p class="small"><a href="{% url 'client_projects' %}">&larr; All projects</a></p>
+    <h1>{{ project.name }}</h1>
+    <p class="muted">PM: {{ project.project_manager }} &middot; Value &#8377;{{ project.value|floatformat:0|intcomma }}
+      &middot; <span class="badge badge-{{ project.status|slugify }}">{{ project.status }}</span></p>
+  </div>
+  <a class="btn btn-sm" href="{% url 'client_messages' %}?project={{ project.pk }}">&#128172; Discuss this project</a>
+</div>
+<div class="card">
+  <div class="progress big"><div style="width: {{ project.completion }}%"></div></div>
+  <p class="small">{{ project.completion }}% complete</p>
+</div>
+
+<div class="card">
+  <h3>Designs</h3>
+  {% for d in designs %}
+  <div class="item">
+    <div class="row-between"><div><b>{{ d.design }}</b> <span class="chip">{{ d.version }}</span></div>
+      <span class="badge badge-{{ d.approval_status|slugify }}">{{ d.approval_status }}</span></div>
+    {% if d.client_feedback %}<p class="small muted">Your feedback: {{ d.client_feedback }}</p>{% endif %}
+    {% if d.approval_status == 'Under Review' %}
+    <form method="post" action="{% url 'design_respond' d.pk %}" class="decision">
+      {% csrf_token %}
+      <input type="text" name="feedback" placeholder="Feedback (optional)" maxlength="1000">
+      <button name="decision" value="approve" class="btn btn-sm">Approve design</button>
+      <button name="decision" value="changes" class="btn btn-sm btn-outline">Request changes</button>
+    </form>
+    {% endif %}
+  </div>
+  {% empty %}<p class="muted">No designs uploaded yet.</p>{% endfor %}
+</div>
+
+<div class="card">
+  <h3>Change Requests</h3>
+  {% for c in change_requests %}
+  <div class="item">
+    <div class="row-between"><div><b>{{ c.request }}</b><br>
+      <small class="muted">Additional cost &#8377;{{ c.additional_cost|floatformat:0|intcomma }} &middot; +{{ c.additional_days }} days</small></div>
+      <span class="badge badge-{{ c.status|slugify }}">{{ c.status }}</span></div>
+    {% if c.client_feedback %}<p class="small muted">Your comment: {{ c.client_feedback }}</p>{% endif %}
+    {% if c.status == 'Pending Client Approval' %}
+    <form method="post" action="{% url 'change_request_respond' c.pk %}" class="decision">
+      {% csrf_token %}
+      <input type="text" name="feedback" placeholder="Comment (optional)" maxlength="1000">
+      <button name="decision" value="approve" class="btn btn-sm">Approve</button>
+      <button name="decision" value="reject" class="btn btn-sm btn-danger">Reject</button>
+    </form>
+    {% endif %}
+  </div>
+  {% empty %}<p class="muted">No change requests.</p>{% endfor %}
+</div>
+
+<div class="detail-grid">
+  <div class="card">
+    <h3>Tasks</h3>
+    <div class="table-wrap flat"><table class="table">
+      <thead><tr><th>Task</th><th>Owner</th><th>Status</th><th class="num">Hours</th></tr></thead>
+      <tbody>
+      {% for t in tasks %}
+        <tr><td>{{ t.task }}<br><small class="muted">{{ t.priority }} priority</small></td><td>{{ t.assigned_to }}</td>
+            <td><span class="badge badge-{{ t.status|slugify }}">{{ t.status }}</span></td>
+            <td class="num">{{ t.actual_hours|floatformat:0 }}/{{ t.estimated_hours|floatformat:0 }}</td></tr>
+      {% empty %}<tr><td colspan="4" class="empty">No tasks yet.</td></tr>{% endfor %}
+      </tbody></table></div>
+  </div>
+
+  <div class="card">
+    <h3>Quality &amp; Bugs</h3>
+    {% for b in bugs %}
+      <div class="item row-between"><div><b>{{ b.bug }}</b><br><small class="muted">{{ b.priority }} &middot; {{ b.assigned_to }}</small></div>
+        <span class="badge badge-{{ b.status|slugify }}">{{ b.status }}</span></div>
+    {% empty %}<p class="muted">No bugs reported.</p>{% endfor %}
+  </div>
+
+  <div class="card">
+    <h3>Websites</h3>
+    {% for w in websites %}
+      <div class="item row-between"><div><b>{{ w.url }}</b><br><small class="muted">{{ w.technology }}</small></div>
+        <span class="badge badge-{{ w.deployment_status|slugify }}">{{ w.deployment_status }}</span></div>
+    {% empty %}<p class="muted">No website linked yet.</p>{% endfor %}
+  </div>
+
+  <div class="card">
+    <h3>Project Files</h3>
+    {% for d in documents %}
+      <div class="item row-between"><div><b>{{ d.title }}</b><br><small class="muted">{{ d.category }}</small></div>
+        <a class="btn btn-sm btn-outline" href="{% url 'document_download' d.pk %}">Download</a></div>
+    {% empty %}<p class="muted">No files for this project.</p>{% endfor %}
+    <p class="small"><a href="{% url 'client_documents' %}?project={{ project.pk }}">Open documents &rarr;</a></p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "portal/layout_staff.html" %}
+{% block title %}Portal Logins{% endblock %}
+{% block panel %}
+<div class="panel-head"><div><h1>Client Portal Logins</h1><p class="muted">Give clients access to their own dashboard. Passwords are generated once &mdash; share them securely.</p></div></div>
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>Client</th><th>Status</th><th>Portal logins</th><th>Create a new login</th></tr></thead>
+    <tbody>
+    {% for c in clients %}
+      <tr>
+        <td><b>{{ c.company }}</b><br><small class="muted">{{ c.contact_name }} &middot; {{ c.email }}</small></td>
+        <td><span class="badge badge-{{ c.status|slugify }}">{{ c.status }}</span></td>
+        <td>
+          {% for p in c.profiles.all %}
+          <div class="item row-between">
+            <div><code>{{ p.user.username }}</code> {% if not p.user.is_active %}<span class="badge badge-open">Disabled</span>{% endif %}</div>
+            <div class="actions">
+              <form method="post" class="inline-form" data-confirm="Generate a new password for {{ p.user.username }}?">{% csrf_token %}
+                <input type="hidden" name="action" value="reset"><input type="hidden" name="profile_id" value="{{ p.pk }}">
+                <button class="btn btn-sm btn-outline" type="submit">Reset password</button></form>
+              <form method="post" class="inline-form">{% csrf_token %}
+                <input type="hidden" name="action" value="toggle"><input type="hidden" name="profile_id" value="{{ p.pk }}">
+                <button class="btn btn-sm btn-danger" type="submit">{% if p.user.is_active %}Disable{% else %}Enable{% endif %}</button></form>
+            </div>
+          </div>
+          {% empty %}<span class="muted">No login yet</span>{% endfor %}
+        </td>
+        <td>
+          <form method="post" class="inline-create">{% csrf_token %}
+            <input type="hidden" name="action" value="create"><input type="hidden" name="client_id" value="{{ c.pk }}">
+            <input type="text" name="username" placeholder="client{{ c.pk }}" class="mini">
+            <button class="btn btn-sm" type="submit">Create login</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

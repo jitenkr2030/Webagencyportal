@@ -1,0 +1,102 @@
+{% extends "portal/layout_client.html" %}
+{% load humanize %}
+{% block title %}My Dashboard &mdash; {{ client.company }}{% endblock %}
+
+{% block panel %}
+<div class="panel-head">
+  <div>
+    <h1>Welcome, {{ request.user.first_name|default:client.contact_name }}</h1>
+    <p class="muted">{{ client.company }} &middot; {{ client.city }} &middot; <span class="badge badge-{{ client.status|slugify }}">{{ client.status }}</span></p>
+  </div>
+  <a class="btn" href="{% url 'client_messages' %}">&#128172; Message our team</a>
+</div>
+
+<div class="stat-row">
+  <div class="stat-box"><span>Overall progress</span><strong>{{ avg_completion }}%</strong></div>
+  <div class="stat-box"><span>Active projects</span><strong>{{ projects|length }}</strong></div>
+  <div class="stat-box warn"><span>Outstanding</span><strong>&#8377;{{ summary.outstanding|floatformat:0|intcomma }}</strong></div>
+  <div class="stat-box"><span>Open tickets</span><strong>{{ summary.open_tickets }}</strong></div>
+  <div class="stat-box {% if unread_messages %}warn{% endif %}"><span>Unread messages</span><strong>{{ unread_messages }}</strong></div>
+</div>
+
+{% if pending_designs or pending_changes or due_invoices %}
+<div class="card attention">
+  <h3>&#9888; Needs your attention</h3>
+  <ul class="plain">
+    {% for d in pending_designs %}
+      <li>Design <b>{{ d.design }} {{ d.version }}</b> is waiting for your approval &mdash; <a href="{% url 'client_project_detail' d.project_id %}">review &amp; respond</a></li>
+    {% endfor %}
+    {% for c in pending_changes %}
+      <li>Change request <b>{{ c.request }}</b> (+&#8377;{{ c.additional_cost|floatformat:0|intcomma }}, +{{ c.additional_days }} days) &mdash; <a href="{% url 'client_project_detail' c.project_id %}">approve or reject</a></li>
+    {% endfor %}
+    {% for i in due_invoices %}
+      <li>Invoice <b>{{ i.invoice_no }}</b>: &#8377;{{ i.outstanding|floatformat:0|intcomma }} outstanding &mdash; <a href="{% url 'client_invoices' %}">view invoices</a></li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<div class="detail-grid">
+  <div class="card">
+    <div class="row-between"><h3>My Projects</h3><a class="small" href="{% url 'client_projects' %}">View all</a></div>
+    {% for p in projects %}
+      <div class="item">
+        <div class="row-between"><a href="{% url 'client_project_detail' p.pk %}"><b>{{ p.name }}</b></a>
+          <span class="badge badge-{{ p.status|slugify }}">{{ p.status }}</span></div>
+        <div class="progress"><div style="width: {{ p.completion }}%"></div></div>
+        <small class="muted">{{ p.completion }}% complete &middot; PM: {{ p.project_manager }}</small>
+      </div>
+    {% empty %}<p class="muted">No projects yet. Your project will appear here once your proposal is accepted.</p>{% endfor %}
+  </div>
+
+  <div class="card">
+    <div class="row-between"><h3>Recent Messages</h3><a class="small" href="{% url 'client_messages' %}">Open chat</a></div>
+    {% for m in recent_messages %}
+      <div class="item">
+        <b>{{ m.author_name }}</b> <small class="muted">{{ m.created_at|timesince }} ago</small>
+        {% if m.from_staff and not m.is_read %}<span class="badge badge-open">New</span>{% endif %}
+        <div class="muted">{{ m.body|truncatechars:90 }}{% if m.document %} &#128206; {{ m.document.filename }}{% endif %}</div>
+      </div>
+    {% empty %}<p class="muted">No messages yet.</p>{% endfor %}
+  </div>
+
+  <div class="card">
+    <div class="row-between"><h3>Meetings</h3><a class="small" href="{% url 'client_meetings' %}">Manage</a></div>
+    {% for mt in meetings %}
+      <div class="item row-between">
+        <div><b>{{ mt.meeting }}</b><br><small class="muted">{{ mt.date|date:"D, d M Y" }} {{ mt.time|time:"H:i" }} &middot; {{ mt.platform }}</small></div>
+        <span class="badge badge-{{ mt.status|slugify }}">{% if mt.status == 'Scheduled' and mt.date < today %}Done{% else %}{{ mt.status }}{% endif %}</span>
+      </div>
+    {% empty %}<p class="muted">No meetings.</p>{% endfor %}
+  </div>
+
+  <div class="card">
+    <div class="row-between"><h3>Latest Documents</h3><a class="small" href="{% url 'client_documents' %}">All files</a></div>
+    {% for d in recent_documents %}
+      <div class="item row-between">
+        <div><b>{{ d.title }}</b><br><small class="muted">{{ d.category }} &middot; {{ d.created_at|date:"d M" }}</small></div>
+        <a class="btn btn-sm btn-outline" href="{% url 'document_download' d.pk %}">Download</a>
+      </div>
+    {% empty %}<p class="muted">No documents shared yet.</p>{% endfor %}
+  </div>
+
+  <div class="card">
+    <div class="row-between"><h3>Open Support Tickets</h3><a class="small" href="{% url 'client_support' %}">Support</a></div>
+    {% for t in open_tickets %}
+      <div class="item row-between">
+        <div><b>#{{ t.pk }} {{ t.subject }}</b><br><small class="muted">{{ t.priority }} priority &middot; {{ t.project.name }}</small></div>
+        <span class="badge badge-{{ t.status|slugify }}">{{ t.status }}</span>
+      </div>
+    {% empty %}<p class="muted">No open tickets &#127881;</p>{% endfor %}
+  </div>
+
+  <div class="card">
+    <div class="row-between"><h3>Notifications</h3><a class="small" href="{% url 'notifications' %}">View all</a></div>
+    {% for n in notifications %}
+      <div class="item {% if not n.is_read %}unread{% endif %}">
+        <a href="{% url 'notification_open' n.pk %}">{{ n.title }}</a><br><small class="muted">{{ n.created_at|timesince }} ago</small>
+      </div>
+    {% empty %}<p class="muted">You are all caught up.</p>{% endfor %}
+  </div>
+</div>
+{% endblock %}

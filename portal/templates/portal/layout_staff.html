@@ -1,0 +1,19 @@
+{% extends "portal/base.html" %}
+{% block content %}
+{% with url=request.resolver_match.url_name %}
+<div class="app">
+  <aside class="sidebar staff">
+    <div class="side-title">Staff Console<small>{{ user.get_username }}</small></div>
+    <a class="{% if url == 'staff_dashboard' %}on{% endif %}" href="{% url 'staff_dashboard' %}">&#128202; Dashboard</a>
+    <a class="{% if url == 'staff_inbox' %}on{% endif %}" href="{% url 'staff_inbox' %}">&#128172; Client Inbox{% if unread_messages %}<span class="count">{{ unread_messages }}</span>{% endif %}</a>
+    <a class="{% if url == 'staff_documents' %}on{% endif %}" href="{% url 'staff_documents' %}">&#128193; Documents</a>
+    <a class="{% if url == 'staff_tickets' %}on{% endif %}" href="{% url 'staff_tickets' %}">&#127915; Support Tickets</a>
+    <a class="{% if url == 'clients' %}on{% endif %}" href="{% url 'clients' %}">&#128101; Clients</a>
+    <a class="{% if url == 'staff_accounts' %}on{% endif %}" href="{% url 'staff_accounts' %}">&#128273; Portal Logins</a>
+    <a class="{% if url == 'notifications' %}on{% endif %}" href="{% url 'notifications' %}">&#128276; Notifications{% if unread_notifications %}<span class="count">{{ unread_notifications }}</span>{% endif %}</a>
+    <a href="/admin/">&#9881; Django Admin</a>
+  </aside>
+  <section class="panel">{% block panel %}{% endblock %}</section>
+</div>
+{% endwith %}
+{% endblock %}

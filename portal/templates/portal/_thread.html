@@ -1,0 +1,16 @@
+<div class="thread" id="thread">
+  {% for m in thread %}
+  <div class="bubble-row {% if m.from_staff == viewer_is_staff %}mine{% else %}theirs{% endif %}">
+    <div class="bubble">
+      <div class="bubble-meta"><b>{{ m.author_name }}</b>{% if m.project %} &middot; {{ m.project.name }}{% endif %}</div>
+      {% if m.body %}<p>{{ m.body|linebreaksbr }}</p>{% endif %}
+      {% if m.document %}
+        <a class="attach" href="{% url 'document_download' m.document.pk %}">&#128206; {{ m.document.filename }} <small>({{ m.document.size_display }})</small></a>
+      {% endif %}
+      <time>{{ m.created_at|date:"d M Y, H:i" }}</time>
+    </div>
+  </div>
+  {% empty %}
+  <p class="empty">No messages yet. Say hello below.</p>
+  {% endfor %}
+</div>

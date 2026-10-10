@@ -1,0 +1,32 @@
+{% extends "portal/layout_staff.html" %}
+{% block title %}Client Inbox{% endblock %}
+{% block panel %}
+<div class="panel-head"><div><h1>Client Inbox</h1><p class="muted">Conversations with every client. Replies notify the client instantly.</p></div></div>
+<div class="inbox">
+  <div class="card convo-list">
+    {% for c in conversations %}
+    <a class="convo {% if selected and selected.pk == c.pk %}on{% endif %}" href="?client={{ c.pk }}">
+      <b>{{ c.company }}</b>{% if c.unread %}<span class="count">{{ c.unread }}</span>{% endif %}<br>
+      <small class="muted">{{ c.contact_name }}{% if c.last_at %} &middot; {{ c.last_at|timesince }} ago{% else %} &middot; no messages{% endif %}</small>
+    </a>
+    {% endfor %}
+  </div>
+
+  <div class="card chat">
+    {% if selected %}
+      <div class="row-between thread-head">
+        <div><h3>{{ selected.company }}</h3><small class="muted">{{ selected.contact_name }} &middot; {{ selected.email }}</small></div>
+        <a class="btn btn-sm btn-outline" href="{% url 'staff_documents' %}?client={{ selected.pk }}">&#128193; Files</a>
+      </div>
+      {% include "portal/_thread.html" %}
+      <form method="post" enctype="multipart/form-data" class="composer">
+        {% csrf_token %}
+        {% include "portal/_form_fields.html" %}
+        <button type="submit" class="btn">Send reply</button>
+      </form>
+    {% else %}
+      <p class="empty">Select a client on the left to read and reply.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

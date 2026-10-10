@@ -1,0 +1,22 @@
+{% extends "portal/base.html" %}
+{% block title %}Notifications{% endblock %}
+{% block content %}
+<section class="container narrow section">
+  <div class="row-between">
+    <h1>Notifications</h1>
+    <form method="post">{% csrf_token %}<button class="btn btn-sm btn-outline" type="submit">Mark all as read</button></form>
+  </div>
+  <div class="card">
+    {% for n in items %}
+      <div class="item {% if not n.is_read %}unread{% endif %}">
+        <a href="{% url 'notification_open' n.pk %}">{{ n.title }}</a>
+        <br><small class="muted">{{ n.created_at|date:"d M Y, H:i" }} ({{ n.created_at|timesince }} ago)</small>
+      </div>
+    {% empty %}<p class="muted">No notifications yet.</p>{% endfor %}
+  </div>
+  <p class="small gap-top">
+    {% if is_staff_user %}<a href="{% url 'staff_dashboard' %}">&larr; Back to staff console</a>
+    {% elif is_client_user %}<a href="{% url 'client_dashboard' %}">&larr; Back to dashboard</a>{% endif %}
+  </p>
+</section>
+{% endblock %}

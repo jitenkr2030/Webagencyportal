@@ -1,0 +1,26 @@
+{% extends "portal/base.html" %}
+{% block title %}Client Login &mdash; PixelForge{% endblock %}
+{% block body_class %}login-page{% endblock %}
+
+{% block content %}
+<section class="login-wrap">
+  <div class="card login-card">
+    <div class="logo big">&lt;/&gt;</div>
+    <h1>Client Portal</h1>
+    <p class="muted">Track your projects, chat with our team, share documents and view invoices.</p>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% if form.errors %}<div class="alert alert-error">Please enter your username and password.</div>{% endif %}
+      <div class="field"><label for="{{ form.username.id_for_label }}">Username</label>{{ form.username }}</div>
+      <div class="field"><label for="{{ form.password.id_for_label }}">Password</label>{{ form.password }}</div>
+      <button type="submit" class="btn btn-block">Sign In</button>
+    </form>
+
+    <p class="hint">Demo logins: <code>client1001</code>, <code>client1002</code>, <code>client1003</code>, <code>client1005</code><br>
+      Password for all: <code>client123</code></p>
+    <p class="small">Forgot your password? Ask your project manager to reset it.<br>
+      <a href="{% url 'admin_login' %}">Staff login</a> &middot; <a href="{% url 'index' %}">&larr; Back to website</a></p>
+  </div>
+</section>
+{% endblock %}

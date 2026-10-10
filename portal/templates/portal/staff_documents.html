@@ -1,0 +1,26 @@
+{% extends "portal/layout_staff.html" %}
+{% block title %}Documents{% endblock %}
+{% block panel %}
+<div class="panel-head"><div><h1>Documents</h1><p class="muted">All files shared with clients, plus internal-only documents.</p></div></div>
+<form method="get" class="filter-bar">
+  <input type="search" name="q" value="{{ q }}" placeholder="Search title, description or client">
+  <select name="client"><option value="">All clients</option>
+    {% for c in clients %}<option value="{{ c.pk }}" {% if client_filter == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.company }}</option>{% endfor %}</select>
+  <select name="category"><option value="">All categories</option>
+    {% for key, label in categories %}<option value="{{ key }}" {% if key == category %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+  <button class="btn btn-sm" type="submit">Filter</button>
+  {% if q or client_filter or category %}<a class="btn btn-sm btn-outline" href="{% url 'staff_documents' %}">Reset</a>{% endif %}
+</form>
+
+{% include "portal/_doc_table.html" with show_client=True is_staff=True %}
+
+<div class="card gap-top">
+  <h3>Share a document with a client</h3>
+  <p class="muted small">Allowed: PDF, Office files, images, TXT, CSV, ZIP &middot; max 10 MB. The client is notified when the file is visible to them.</p>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% include "portal/_form_fields.html" %}
+    <button type="submit" class="btn">Upload &amp; share</button>
+  </form>
+</div>
+{% endblock %}

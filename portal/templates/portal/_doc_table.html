@@ -1,0 +1,31 @@
+{# expects: documents, show_client (bool), is_staff (bool) #}
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>Document</th>{% if show_client %}<th>Client</th>{% endif %}<th>Category</th><th>Project</th><th>From</th><th>Added</th><th>Size</th><th></th></tr></thead>
+    <tbody>
+    {% for d in documents %}
+      <tr>
+        <td><b>{{ d.title }}</b>{% if not d.visible_to_client %} <span class="badge badge-open">Internal</span>{% endif %}<br>
+            <small class="muted">{{ d.filename }}</small></td>
+        {% if show_client %}<td>{{ d.client.company }}</td>{% endif %}
+        <td><span class="chip">{{ d.category }}</span></td>
+        <td>{{ d.project.name|default:"-" }}</td>
+        <td>{% if d.from_staff %}Agency{% else %}Client{% endif %}</td>
+        <td>{{ d.created_at|date:"d M Y" }}</td>
+        <td>{{ d.size_display }}</td>
+        <td class="actions">
+          <a class="btn btn-sm btn-outline" href="{% url 'document_download' d.pk %}">Download</a>
+          {% if is_staff or not d.from_staff %}
+          <form method="post" action="{% url 'document_delete' d.pk %}" class="inline-form" data-confirm="Delete this document?">
+            {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="8" class="empty">No documents found.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>

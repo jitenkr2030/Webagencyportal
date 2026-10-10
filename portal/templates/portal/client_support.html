@@ -1,0 +1,22 @@
+{% extends "portal/layout_client.html" %}
+{% block title %}Support Tickets{% endblock %}
+{% block panel %}
+<div class="panel-head"><div><h1>Support Tickets</h1><p class="muted">Report a problem and follow its progress.</p></div></div>
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>#</th><th>Subject</th><th>Project</th><th>Priority</th><th>Assigned to</th><th>Opened</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for t in tickets %}
+      <tr><td>{{ t.pk }}</td><td><b>{{ t.subject }}</b>{% if t.description %}<br><small class="muted">{{ t.description|truncatechars:80 }}</small>{% endif %}</td>
+          <td>{{ t.project.name }}</td><td><span class="badge badge-{{ t.priority|slugify }}">{{ t.priority }}</span></td>
+          <td>{{ t.assigned_to }}</td><td>{{ t.created_at|date:"d M Y" }}</td>
+          <td><span class="badge badge-{{ t.status|slugify }}">{{ t.status }}</span></td></tr>
+    {% empty %}<tr><td colspan="7" class="empty">No tickets yet.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+<div class="card gap-top">
+  <h3>Raise a new ticket</h3>
+  <form method="post">{% csrf_token %}{% include "portal/_form_fields.html" %}<button class="btn" type="submit">Submit ticket</button></form>
+</div>
+{% endblock %}

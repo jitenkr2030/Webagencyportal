@@ -1,0 +1,21 @@
+{% extends "portal/layout_client.html" %}
+{% block title %}Meetings{% endblock %}
+{% block panel %}
+<div class="panel-head"><div><h1>Meetings</h1><p class="muted">Scheduled calls with your project team.</p></div></div>
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>Meeting</th><th>Project</th><th>Date</th><th>Time</th><th>Platform</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for mt in meetings %}
+      <tr><td><b>{{ mt.meeting }}</b></td><td>{{ mt.project.name }}</td><td>{{ mt.date|date:"D, d M Y" }}</td>
+          <td>{{ mt.time|time:"H:i" }}</td><td>{{ mt.platform }}</td>
+          <td><span class="badge badge-{{ mt.status|slugify }}">{% if mt.status == 'Scheduled' and mt.date < today %}Completed{% else %}{{ mt.status }}{% endif %}</span></td></tr>
+    {% empty %}<tr><td colspan="6" class="empty">No meetings yet.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+<div class="card gap-top">
+  <h3>Request a meeting</h3>
+  <form method="post">{% csrf_token %}{% include "portal/_form_fields.html" %}<button class="btn" type="submit">Send request</button></form>
+</div>
+{% endblock %}

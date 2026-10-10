@@ -1,0 +1,21 @@
+{% extends "portal/layout_client.html" %}
+{% block title %}Messages{% endblock %}
+{% block panel %}
+<div class="panel-head">
+  <div><h1>Messages</h1><p class="muted">Chat directly with your project team. Files you attach are saved in Documents.</p></div>
+  <form method="get" class="filter-bar tight">
+    <select name="project" onchange="this.form.submit()">
+      <option value="">All conversations</option>
+      {% for p in projects %}<option value="{{ p.pk }}" {% if project_filter == p.pk|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>{% endfor %}
+    </select>
+  </form>
+</div>
+<div class="card chat">
+  {% include "portal/_thread.html" %}
+  <form method="post" enctype="multipart/form-data" class="composer">
+    {% csrf_token %}
+    {% include "portal/_form_fields.html" %}
+    <button type="submit" class="btn">Send</button>
+  </form>
+</div>
+{% endblock %}

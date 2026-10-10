@@ -1,0 +1,19 @@
+{% extends "portal/base.html" %}
+{% block content %}
+{% with url=request.resolver_match.url_name %}
+<div class="app">
+  <aside class="sidebar">
+    <div class="side-title">{{ nav_client.company }}<small>Client Portal</small></div>
+    <a class="{% if url == 'client_dashboard' %}on{% endif %}" href="{% url 'client_dashboard' %}">&#127968; Dashboard</a>
+    <a class="{% if url == 'client_projects' or url == 'client_project_detail' %}on{% endif %}" href="{% url 'client_projects' %}">&#128188; Projects</a>
+    <a class="{% if url == 'client_messages' %}on{% endif %}" href="{% url 'client_messages' %}">&#128172; Messages{% if unread_messages %}<span class="count">{{ unread_messages }}</span>{% endif %}</a>
+    <a class="{% if url == 'client_documents' %}on{% endif %}" href="{% url 'client_documents' %}">&#128193; Documents</a>
+    <a class="{% if url == 'client_invoices' %}on{% endif %}" href="{% url 'client_invoices' %}">&#129534; Invoices &amp; Payments</a>
+    <a class="{% if url == 'client_support' %}on{% endif %}" href="{% url 'client_support' %}">&#127915; Support Tickets</a>
+    <a class="{% if url == 'client_meetings' %}on{% endif %}" href="{% url 'client_meetings' %}">&#128197; Meetings</a>
+    <a class="{% if url == 'notifications' %}on{% endif %}" href="{% url 'notifications' %}">&#128276; Notifications{% if unread_notifications %}<span class="count">{{ unread_notifications }}</span>{% endif %}</a>
+  </aside>
+  <section class="panel">{% block panel %}{% endblock %}</section>
+</div>
+{% endwith %}
+{% endblock %}

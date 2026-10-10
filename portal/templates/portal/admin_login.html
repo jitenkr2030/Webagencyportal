@@ -1,0 +1,29 @@
+{% extends "portal/base.html" %}
+{% block title %}Staff Login &mdash; PixelForge{% endblock %}
+{% block body_class %}login-page{% endblock %}
+
+{% block content %}
+<section class="login-wrap">
+  <div class="card login-card">
+    <div class="logo big">&lt;/&gt;</div>
+    <h1>Staff Login</h1>
+    <p class="muted">Sign in to the staff console: client inbox, documents, tickets and portal logins.</p>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="field">
+        <label for="{{ form.username.id_for_label }}">Username</label>
+        {{ form.username }}
+      </div>
+      <div class="field">
+        <label for="{{ form.password.id_for_label }}">Password</label>
+        {{ form.password }}
+      </div>
+      <button type="submit" class="btn btn-block">Sign In</button>
+    </form>
+
+    <p class="hint">Demo account: <code>admin</code> / <code>admin123</code></p>
+    <p class="small"><a href="{% url 'client_login' %}">Client login</a> &middot; <a href="{% url 'index' %}">&larr; Back to website</a></p>
+  </div>
+</section>
+{% endblock %}

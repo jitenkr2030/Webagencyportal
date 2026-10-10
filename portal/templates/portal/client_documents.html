@@ -1,0 +1,27 @@
+{% extends "portal/layout_client.html" %}
+{% block title %}Documents{% endblock %}
+{% block panel %}
+<div class="panel-head"><div><h1>Documents</h1><p class="muted">Contracts, proposals, designs and files shared between you and the agency.</p></div></div>
+
+<form method="get" class="filter-bar">
+  <input type="search" name="q" value="{{ q }}" placeholder="Search documents">
+  <select name="category"><option value="">All categories</option>
+    {% for key, label in categories %}<option value="{{ key }}" {% if key == category %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+  <select name="project"><option value="">All projects</option>
+    {% for p in projects %}<option value="{{ p.pk }}" {% if project_filter == p.pk|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>{% endfor %}</select>
+  <button class="btn btn-sm" type="submit">Filter</button>
+  {% if q or category or project_filter %}<a class="btn btn-sm btn-outline" href="{% url 'client_documents' %}">Reset</a>{% endif %}
+</form>
+
+{% include "portal/_doc_table.html" with show_client=False is_staff=False %}
+
+<div class="card gap-top">
+  <h3>Upload a document</h3>
+  <p class="muted small">Allowed: PDF, Office files, images, TXT, CSV, ZIP &middot; max 10 MB. Uploaded files are visible to you and the agency team only.</p>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% include "portal/_form_fields.html" %}
+    <button type="submit" class="btn">Upload</button>
+  </form>
+</div>
+{% endblock %}

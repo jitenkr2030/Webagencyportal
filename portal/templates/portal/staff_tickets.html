@@ -1,0 +1,28 @@
+{% extends "portal/layout_staff.html" %}
+{% block title %}Support Tickets{% endblock %}
+{% block panel %}
+<div class="panel-head"><div><h1>Support Tickets</h1><p class="muted">Update status or assignee &mdash; the client is notified automatically.</p></div>
+  <form method="get" class="filter-bar tight"><select name="status" onchange="this.form.submit()">
+    <option value="">All tickets</option><option value="open" {% if status_filter == 'open' %}selected{% endif %}>Open (not resolved)</option>
+    {% for s in statuses %}<option value="{{ s }}" {% if status_filter == s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+  </select></form></div>
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>#</th><th>Ticket</th><th>Client</th><th>Priority</th><th>Assigned to</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+    {% for t in tickets %}
+      <tr>
+        <td>{{ t.pk }}
+          <form id="tf{{ t.pk }}" method="post">{% csrf_token %}<input type="hidden" name="ticket_id" value="{{ t.pk }}"></form></td>
+        <td><b>{{ t.subject }}</b>{% if t.description %}<br><small class="muted">{{ t.description|truncatechars:70 }}</small>{% endif %}<br><small class="muted">{{ t.project.name }}</small></td>
+        <td>{{ t.client.company }}</td>
+        <td><span class="badge badge-{{ t.priority|slugify }}">{{ t.priority }}</span></td>
+        <td><input type="text" name="assigned_to" form="tf{{ t.pk }}" value="{{ t.assigned_to }}" class="mini"></td>
+        <td><select name="status" form="tf{{ t.pk }}" class="mini">{% for s in statuses %}<option value="{{ s }}" {% if s == t.status %}selected{% endif %}>{{ s }}</option>{% endfor %}</select></td>
+        <td><button class="btn btn-sm" type="submit" form="tf{{ t.pk }}">Save</button></td>
+      </tr>
+    {% empty %}<tr><td colspan="7" class="empty">No tickets.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

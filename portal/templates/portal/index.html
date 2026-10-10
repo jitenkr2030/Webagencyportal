@@ -1,0 +1,114 @@
+{% extends "portal/base.html" %}
+{% load humanize %}
+{% block title %}PixelForge &mdash; Web Development Agency{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="container hero-grid">
+    <div>
+      <p class="eyebrow">Web Development Agency</p>
+      <h1>We design, build and maintain websites that grow your business.</h1>
+      <p class="lead">From corporate sites and online stores to custom web applications &mdash; one team
+        taking you from first enquiry to deployment and ongoing care.</p>
+      <div class="hero-actions">
+        <a href="#enquiry" class="btn">Get a Free Quote</a>
+        <a href="#services" class="btn btn-outline">Explore Services</a>
+        <a href="{% url 'client_login' %}" class="btn btn-outline">Client Portal &rarr;</a>
+      </div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat"><strong>{{ stats.clients }}</strong><span>Clients</span></div>
+      <div class="stat"><strong>{{ stats.projects }}</strong><span>Projects</span></div>
+      <div class="stat"><strong>{{ stats.live_sites }}</strong><span>Live Websites</span></div>
+      <div class="stat"><strong>{{ stats.active_amc }}</strong><span>Care Plans</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="services" class="section">
+  <div class="container">
+    <h2>Our Services</h2>
+    <p class="section-sub">Transparent starting prices and delivery timelines.</p>
+    <div class="card-grid">
+      {% for s in services %}
+      <article class="card service-card">
+        <span class="chip">{{ s.category }}</span>
+        <h3>{{ s.name }}</h3>
+        <p class="price">&#8377;{{ s.starting_price|floatformat:0|intcomma }} <small>starting</small></p>
+        <p class="muted">Delivery in about {{ s.delivery_days }} days</p>
+      </article>
+      {% empty %}
+      <p class="muted">No services yet. Run <code>python manage.py seed_demo</code> to load demo data.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section alt">
+  <div class="container">
+    <h2>How We Work</h2>
+    <ol class="steps">
+      <li><b>Enquiry</b><span>Tell us what you need</span></li>
+      <li><b>Proposal</b><span>Scope, timeline &amp; quote</span></li>
+      <li><b>Design</b><span>UI mock-ups &amp; approvals</span></li>
+      <li><b>Development</b><span>Build &amp; integrate</span></li>
+      <li><b>QA &amp; Review</b><span>Testing &amp; revisions</span></li>
+      <li><b>Deploy</b><span>Go live &amp; handover</span></li>
+      <li><b>Maintain</b><span>AMC &amp; support</span></li>
+    </ol>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2>Recent Projects</h2>
+    <div class="card-grid">
+      {% for p in projects %}
+      <article class="card">
+        <div class="row-between">
+          <h3>{{ p.name }}</h3>
+          <span class="badge badge-{{ p.status|slugify }}">{{ p.status }}</span>
+        </div>
+        <div class="progress"><div style="width: {{ p.completion }}%"></div></div>
+        <p class="small">{{ p.completion }}% complete</p>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+
+<section class="section alt">
+  <div class="container">
+    <h2>Your Own Client Portal</h2>
+    <p class="section-sub">Every client gets a private dashboard.</p>
+    <div class="card-grid">
+      <article class="card"><h3>&#128188; Live project tracking</h3><p class="muted">Progress, tasks, designs and deployment status in one place.</p></article>
+      <article class="card"><h3>&#128172; Direct messaging</h3><p class="muted">Chat with your project team and keep a full history.</p></article>
+      <article class="card"><h3>&#128193; Secure document sharing</h3><p class="muted">Contracts, designs and invoices &mdash; upload and download safely.</p></article>
+      <article class="card"><h3>&#9989; One-click approvals</h3><p class="muted">Approve designs and change requests without email chains.</p></article>
+    </div>
+    <p style="margin-top:1.4rem"><a class="btn" href="{% url 'client_login' %}">Open Client Portal</a></p>
+  </div>
+</section>
+
+<section id="enquiry" class="section">
+  <div class="container narrow">
+    <h2>Start Your Project</h2>
+    <p class="section-sub">Send an enquiry and it is added straight to our CRM as a new lead.</p>
+    <form method="post" class="card form-card" action="{% url 'index' %}#enquiry">
+      {% csrf_token %}
+      <div class="form-grid">
+        {% for field in form %}
+        <div class="field {% if field.name == 'message' %}full{% endif %}">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% for err in field.errors %}<small class="error">{{ err }}</small>{% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+      <button type="submit" class="btn">Send Enquiry</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

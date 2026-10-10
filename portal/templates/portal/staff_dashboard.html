@@ -1,0 +1,87 @@
+{% extends "portal/layout_staff.html" %}
+{% load humanize %}
+{% block title %}Staff Console{% endblock %}
+{% block panel %}
+<div class="panel-head"><div><h1>Staff Console</h1><p class="muted">Everything that needs attention across clients, communication and delivery.</p></div>
+  <a class="btn" href="{% url 'staff_inbox' %}">&#128172; Open inbox{% if unread_from_clients %} ({{ unread_from_clients }}){% endif %}</a></div>
+
+<div class="stat-row">
+  <div class="stat-box"><span>Clients</span><strong>{{ metrics.total_clients }}</strong></div>
+  <div class="stat-box"><span>Active projects</span><strong>{{ metrics.active_projects }}</strong></div>
+  <div class="stat-box {% if unread_from_clients %}warn{% endif %}"><span>Unread client messages</span><strong>{{ unread_from_clients }}</strong></div>
+  <div class="stat-box"><span>Open tickets</span><strong>{{ metrics.open_tickets }}</strong></div>
+  <div class="stat-box warn"><span>Outstanding</span><strong>&#8377;{{ metrics.outstanding|floatformat:0|intcomma }}</strong></div>
+  <div class="stat-box good"><span>Collected</span><strong>&#8377;{{ metrics.collected|floatformat:0|intcomma }}</strong></div>
+</div>
+
+<div class="detail-grid">
+  <div class="card">
+    <div class="row-between"><h3>Latest client messages</h3><a class="small" href="{% url 'staff_inbox' %}">Inbox</a></div>
+    {% for m in recent_client_messages %}
+      <div class="item">
+        <a href="{% url 'staff_inbox' %}?client={{ m.client_id }}"><b>{{ m.client.company }}</b></a>
+        <small class="muted">{{ m.created_at|timesince }} ago</small> {% if not m.is_read %}<span class="badge badge-open">New</span>{% endif %}
+        <div class="muted">{{ m.body|truncatechars:90 }}{% if m.document %} &#128206; {{ m.document.filename }}{% endif %}</div>
+      </div>
+    {% empty %}<p class="muted">No client messages yet.</p>{% endfor %}
+  </div>
+
+  <div class="card">
+    <h3>Meeting requests</h3>
+    {% for mt in meeting_requests %}
+      <div class="item">
+        <b>{{ mt.meeting }}</b> <small class="muted">&middot; {{ mt.client.company }}</small><br>
+        <small class="muted">{{ mt.date|date:"D d M Y" }} {{ mt.time|time:"H:i" }} &middot; {{ mt.platform }} &middot; {{ mt.project.name }}</small>
+        <form method="post" action="{% url 'meeting_confirm' mt.pk %}" class="decision">{% csrf_token %}
+          <button name="decision" value="confirm" class="btn btn-sm">Confirm</button>
+          <button name="decision" value="decline" class="btn btn-sm btn-danger">Decline</button>
+        </form>
+      </div>
+    {% empty %}<p class="muted">No pending meeting requests.</p>{% endfor %}
+  </div>
+
+  <div class="card">
+    <h3>Waiting for client approval</h3>
+    {% for d in pending_designs %}
+      <div class="item row-between"><div><b>{{ d.design }} {{ d.version }}</b><br><small class="muted">Design &middot; {{ d.project.client.company }}</small></div><span class="badge badge-under-review">Under Review</span></div>
+    {% endfor %}
+    {% for c in pending_changes %}
+      <div class="item row-between"><div><b>{{ c.request }}</b><br><small class="muted">Change request &middot; {{ c.client.company }} &middot; &#8377;{{ c.additional_cost|floatformat:0|intcomma }}</small></div><span class="badge badge-pending">Pending</span></div>
+    {% endfor %}
+    {% if not pending_designs and not pending_changes %}<p class="muted">Nothing waiting on clients.</p>{% endif %}
+  </div>
+
+  <div class="card">
+    <div class="row-between"><h3>Open tickets</h3><a class="small" href="{% url 'staff_tickets' %}">Manage</a></div>
+    {% for t in open_tickets %}
+      <div class="item row-between"><div><b>#{{ t.pk }} {{ t.subject }}</b><br><small class="muted">{{ t.client.company }} &middot; {{ t.priority }}</small></div>
+        <span class="badge badge-{{ t.status|slugify }}">{{ t.status }}</span></div>
+    {% empty %}<p class="muted">No open tickets.</p>{% endfor %}
+  </div>
+
+  <div class="card">
+    <div class="row-between"><h3>Recent documents</h3><a class="small" href="{% url 'staff_documents' %}">All files</a></div>
+    {% for d in recent_documents %}
+      <div class="item row-between"><div><b>{{ d.title }}</b><br><small class="muted">{{ d.client.company }} &middot; {% if d.from_staff %}Agency{% else %}Client upload{% endif %}</small></div>
+        <a class="btn btn-sm btn-outline" href="{% url 'document_download' d.pk %}">Download</a></div>
+    {% empty %}<p class="muted">No documents.</p>{% endfor %}
+  </div>
+
+  <div class="card">
+    <h3>Project progress</h3>
+    {% for p in projects %}
+      <div class="item"><div class="row-between"><b>{{ p.name }}</b><span class="badge badge-{{ p.status|slugify }}">{{ p.status }}</span></div>
+        <div class="progress"><div style="width: {{ p.completion }}%"></div></div>
+        <small class="muted">{{ p.client.company }} &middot; {{ p.completion }}%</small></div>
+    {% endfor %}
+  </div>
+
+  <div class="card">
+    <h3>Open leads</h3>
+    {% for l in new_leads %}
+      <div class="item row-between"><div><b>{{ l.company }}</b><br><small class="muted">{{ l.requirement }} &middot; {{ l.lead_source }}</small></div>
+        <span class="badge badge-{{ l.status|slugify }}">{{ l.status }}</span></div>
+    {% empty %}<p class="muted">No open leads.</p>{% endfor %}
+  </div>
+</div>
+{% endblock %}

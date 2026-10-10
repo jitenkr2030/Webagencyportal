@@ -1,0 +1,164 @@
+{% extends "portal/layout_staff.html" %}
+{% load humanize %}
+{% block title %}Clients &mdash; PixelForge{% endblock %}
+
+{% block panel %}
+<div class="panel-head"><div><h1>Clients</h1><p class="muted">Client directory with project, billing and support overview.</p></div></div>
+
+<section>
+  <div class="stat-row">
+    <div class="stat-box"><span>Total Clients</span><strong>{{ metrics.total_clients }}</strong></div>
+    <div class="stat-box"><span>Invoice Value</span><strong>&#8377;{{ metrics.invoice_value|floatformat:0|intcomma }}</strong></div>
+    <div class="stat-box good"><span>Collected</span><strong>&#8377;{{ metrics.collected|floatformat:0|intcomma }}</strong></div>
+    <div class="stat-box warn"><span>Outstanding</span><strong>&#8377;{{ metrics.outstanding|floatformat:0|intcomma }}</strong></div>
+    <div class="stat-box"><span>Open Tickets</span><strong>{{ metrics.open_tickets }}</strong></div>
+  </div>
+
+  <form method="get" class="filter-bar">
+    <input type="search" name="q" value="{{ q }}" placeholder="Search company, contact, email or city">
+    <select name="status">
+      <option value="">All statuses</option>
+      {% for s in statuses %}<option value="{{ s }}" {% if s == status %}selected{% endif %}>{{ s }}</option>{% endfor %}
+    </select>
+    <button class="btn btn-sm" type="submit">Filter</button>
+    {% if q or status %}<a class="btn btn-sm btn-outline" href="{% url 'clients' %}">Reset</a>{% endif %}
+  </form>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th>ID</th><th>Company</th><th>Contact</th><th>City</th><th>Status</th>
+            <th class="num">Projects</th><th class="num">Billed (&#8377;)</th><th class="num">Paid (&#8377;)</th>
+            <th class="num">Due (&#8377;)</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr class="{% if selected and selected.client.pk == row.client.pk %}selected{% endif %}">
+          <td>{{ row.client.pk }}</td>
+          <td><b>{{ row.client.company }}</b><br><small class="muted">{{ row.client.email }}</small></td>
+          <td>{{ row.client.contact_name }}</td>
+          <td>{{ row.client.city }}</td>
+          <td><span class="badge badge-{{ row.client.status|slugify }}">{{ row.client.status }}</span></td>
+          <td class="num">{{ row.summary.project_count }}</td>
+          <td class="num">{{ row.summary.billed|floatformat:0|intcomma }}</td>
+          <td class="num">{{ row.summary.paid|floatformat:0|intcomma }}</td>
+          <td class="num {% if row.summary.outstanding > 0 %}due{% endif %}">{{ row.summary.outstanding|floatformat:0|intcomma }}</td>
+          <td><a class="btn btn-sm btn-outline" href="?{% if q %}q={{ q|urlencode }}&{% endif %}{% if status %}status={{ status|urlencode }}&{% endif %}client={{ row.client.pk }}#detail">View</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="10" class="empty">No clients match your search.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if selected %}
+  {% with c=selected.client s=selected.summary %}
+  <section id="detail" class="detail">
+    <div class="row-between">
+      <div>
+        <h2>{{ c.company }}</h2>
+        <p class="muted">{{ c.contact_name }} &middot; {{ c.email }} &middot; {{ c.city }}</p>
+      </div>
+      <div class="actions">
+        <a class="btn btn-sm" href="{% url 'staff_inbox' %}?client={{ c.pk }}">&#128172; Messages</a>
+        <a class="btn btn-sm btn-outline" href="{% url 'staff_documents' %}?client={{ c.pk }}">&#128193; Documents</a>
+        <a class="btn btn-sm btn-outline" href="{% url 'clients' %}">Close</a>
+      </div>
+    </div>
+
+    <div class="stat-row small">
+      <div class="stat-box"><span>Billed</span><strong>&#8377;{{ s.billed|floatformat:0|intcomma }}</strong></div>
+      <div class="stat-box good"><span>Paid</span><strong>&#8377;{{ s.paid|floatformat:0|intcomma }}</strong></div>
+      <div class="stat-box warn"><span>Outstanding</span><strong>&#8377;{{ s.outstanding|floatformat:0|intcomma }}</strong></div>
+      <div class="stat-box"><span>Open Tickets</span><strong>{{ s.open_tickets }}</strong></div>
+    </div>
+
+    <div class="detail-grid">
+      <div class="card">
+        <h3>Projects</h3>
+        {% for p in c.projects.all %}
+          <div class="item">
+            <div class="row-between"><b>{{ p.name }}</b><span class="badge badge-{{ p.status|slugify }}">{{ p.status }}</span></div>
+            <small class="muted">PM: {{ p.project_manager }} &middot; &#8377;{{ p.value|floatformat:0|intcomma }}</small>
+            <div class="progress"><div style="width: {{ p.completion }}%"></div></div>
+            <small>{{ p.completion }}% complete</small>
+          </div>
+        {% empty %}<p class="muted">No projects yet.</p>{% endfor %}
+      </div>
+
+      <div class="card">
+        <h3>Invoices</h3>
+        {% for i in c.invoices.all %}
+          <div class="item row-between">
+            <div><b>{{ i.invoice_no }}</b><br><small class="muted">&#8377;{{ i.amount_paid|floatformat:0|intcomma }} of &#8377;{{ i.amount|floatformat:0|intcomma }}</small></div>
+            <span class="badge badge-{{ i.status|slugify }}">{{ i.status }}</span>
+          </div>
+        {% empty %}<p class="muted">No invoices.</p>{% endfor %}
+      </div>
+
+      <div class="card">
+        <h3>Websites</h3>
+        {% for w in c.websites.all %}
+          <div class="item row-between">
+            <div><b>{{ w.url }}</b><br><small class="muted">{{ w.technology }}</small></div>
+            <span class="badge badge-{{ w.deployment_status|slugify }}">{{ w.deployment_status }}</span>
+          </div>
+        {% empty %}<p class="muted">No websites.</p>{% endfor %}
+      </div>
+
+      <div class="card">
+        <h3>Requirements &amp; Proposals</h3>
+        {% for r in c.requirements.all %}
+          <div class="item row-between">
+            <div><b>{{ r.requirement }}</b><br><small class="muted">{{ r.technology }}</small></div>
+            <span class="badge badge-{{ r.approval_status|slugify }}">{{ r.approval_status }}</span>
+          </div>
+        {% endfor %}
+        {% for p in c.proposals.all %}
+          <div class="item row-between">
+            <div><b>{{ p.project_name }}</b><br><small class="muted">Total &#8377;{{ p.total|floatformat:0|intcomma }}</small></div>
+            <span class="badge badge-{{ p.status|slugify }}">{{ p.status }}</span>
+          </div>
+        {% endfor %}
+        {% if not c.requirements.all and not c.proposals.all %}<p class="muted">Nothing recorded.</p>{% endif %}
+      </div>
+
+      <div class="card">
+        <h3>Support Tickets</h3>
+        {% for t in c.tickets.all %}
+          <div class="item row-between">
+            <div><b>{{ t.subject }}</b><br><small class="muted">{{ t.priority }} &middot; {{ t.assigned_to }}</small></div>
+            <span class="badge badge-{{ t.status|slugify }}">{{ t.status }}</span>
+          </div>
+        {% empty %}<p class="muted">No tickets.</p>{% endfor %}
+      </div>
+
+      <div class="card">
+        <h3>AMC, Changes &amp; Meetings</h3>
+        {% for a in c.amc_plans.all %}
+          <div class="item row-between">
+            <div><b>{{ a.plan_name }}</b><br><small class="muted">{{ a.billing_cycle }} &middot; &#8377;{{ a.fee|floatformat:0|intcomma }}</small></div>
+            <span class="badge badge-{{ a.status|slugify }}">{{ a.status }}</span>
+          </div>
+        {% endfor %}
+        {% for cr in c.change_requests.all %}
+          <div class="item row-between">
+            <div><b>{{ cr.request }}</b><br><small class="muted">+&#8377;{{ cr.additional_cost|floatformat:0|intcomma }} &middot; +{{ cr.additional_days }} days</small></div>
+            <span class="badge badge-{{ cr.status|slugify }}">{{ cr.status }}</span>
+          </div>
+        {% endfor %}
+        {% for mt in c.meetings.all %}
+          <div class="item">
+            <b>{{ mt.meeting }}</b><br>
+            <small class="muted">{{ mt.date|date:"d M Y" }}, {{ mt.time|time:"H:i" }} &middot; {{ mt.platform }}</small>
+          </div>
+        {% endfor %}
+        {% if not c.amc_plans.all and not c.change_requests.all and not c.meetings.all %}<p class="muted">Nothing recorded.</p>{% endif %}
+      </div>
+    </div>
+  </section>
+  {% endwith %}
+  {% endif %}
+</section>
+{% endblock %}

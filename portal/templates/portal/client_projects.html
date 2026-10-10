@@ -1,0 +1,17 @@
+{% extends "portal/layout_client.html" %}
+{% load humanize %}
+{% block title %}Projects &mdash; {{ client.company }}{% endblock %}
+{% block panel %}
+<div class="panel-head"><div><h1>My Projects</h1><p class="muted">Progress, designs, tasks and change requests for every project.</p></div></div>
+<div class="card-grid">
+  {% for p in projects %}
+  <article class="card">
+    <div class="row-between"><h3>{{ p.name }}</h3><span class="badge badge-{{ p.status|slugify }}">{{ p.status }}</span></div>
+    <p class="muted">Project manager: {{ p.project_manager }} &middot; Value &#8377;{{ p.value|floatformat:0|intcomma }}</p>
+    <div class="progress"><div style="width: {{ p.completion }}%"></div></div>
+    <p class="small">{{ p.completion }}% complete &middot; {{ p.tasks.count }} tasks &middot; {{ p.designs.count }} designs</p>
+    <a class="btn btn-sm" href="{% url 'client_project_detail' p.pk %}">Open project</a>
+  </article>
+  {% empty %}<p class="muted">You have no projects yet.</p>{% endfor %}
+</div>
+{% endblock %}
